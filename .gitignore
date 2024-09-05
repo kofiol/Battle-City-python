@@ -28,3 +28,4 @@ wheels/
 *.cover
 .hypothesis/
 .cache/
+.pyc
