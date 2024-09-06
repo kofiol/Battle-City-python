@@ -3,6 +3,18 @@ import sys
 import os
 import math
 
+kofiol = '''
+
+ d8b                  ,d8888b  d8,         d8b 
+ ?88     made by      88P'    `8P          88P 
+  88b              d888888P               d88  
+  888  d88' d8888b   ?88'      88b d8888b 888  
+  888bd8P' d8P' ?88  88P       88Pd8P' ?88?88  
+ d88888b   88b  d88 d88       d88 88b  d88 88b 
+d88' `?88b,`?8888P'd88'      d88' `?8888P'  88b
+        --nothing ever lasts forever--
+'''
+print(kofiol)
 # Initialize pygame
 pygame.init()
 
