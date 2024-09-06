@@ -28,7 +28,8 @@ text_color = (211, 211, 211)
 image_path = os.path.join(os.path.dirname(__file__), 'resources/textures/tank-art.png')
 player_tank_path = os.path.join(os.path.dirname(__file__), 'resources/textures/1.png')
 wall_image_path = os.path.join(os.path.dirname(__file__), 'resources/textures/brick-wall.png')
-bullet_image_path = os.path.join(os.path.dirname(__file__), 'resources/textures/bullet-1.png')
+bullet_image_path_archived = os.path.join(os.path.dirname(__file__), 'resources/textures/bullet-1.png')
+bullet_image_path = os.path.join(os.path.dirname(__file__), 'resources/textures/fire-ball.png')
 music_path = os.path.join(os.path.dirname(__file__), 'resources/music/background-music.mp3')
 font_path = os.path.join(os.path.dirname(__file__), 'resources/fonts/ps-2p-font.ttf')
 
@@ -61,6 +62,10 @@ bullet_speed = 10
 clock = pygame.time.Clock()
 bullet_delay = 1.5 * 1000  # 1.5 seconds in milliseconds
 last_bullet_time = 0
+
+# Turn state
+turn_left_pressed = False
+turn_right_pressed = False
 
 # New function to determine which wall the tank is facing
 def get_facing_wall(angle):
@@ -138,10 +143,18 @@ while True:
     keys = pygame.key.get_pressed()
     current_time = pygame.time.get_ticks()
 
-    if keys[pygame.K_LEFT]:
+    if keys[pygame.K_LEFT] and not turn_left_pressed:
         player_angle += 90
-    if keys[pygame.K_RIGHT]:
+        turn_left_pressed = True
+    elif not keys[pygame.K_LEFT]:
+        turn_left_pressed = False
+
+    if keys[pygame.K_RIGHT] and not turn_right_pressed:
         player_angle -= 90
+        turn_right_pressed = True
+    elif not keys[pygame.K_RIGHT]:
+        turn_right_pressed = False
+
     if keys[pygame.K_UP]:
         facing_wall = get_facing_wall(player_angle)
         movement = {
@@ -156,6 +169,7 @@ while True:
         if not any(player_rect.colliderect(wall.rect) for wall in walls_sprites):
             player_pos[0] = new_pos[0]
             player_pos[1] = new_pos[1]
+    
     if keys[pygame.K_SPACE] and current_time - last_bullet_time >= bullet_delay:
         shoot_bullet()
         last_bullet_time = current_time
