@@ -4,7 +4,6 @@ import os
 import math
 
 kofiol = '''
-
  d8b                  ,d8888b  d8,         d8b 
  ?88     made by      88P'    `8P          88P 
   88b              d888888P               d88  
@@ -32,6 +31,7 @@ player_tank_path = os.path.join(os.path.dirname(__file__), 'resources/textures/1
 wall_image_path = os.path.join(os.path.dirname(__file__), 'resources/textures/brick-wall.png')
 bullet_image_path = os.path.join(os.path.dirname(__file__), 'resources/textures/bullet-1.png')
 music_path = os.path.join(os.path.dirname(__file__), 'resources/music/background-music.mp3')
+font_path = os.path.join(os.path.dirname(__file__), 'resources/fonts/ps-2p-font.ttf')
 
 # Load resources
 image = pygame.image.load(image_path)
@@ -51,33 +51,57 @@ bullet_image = pygame.transform.scale(bullet_image, (20, 20))
 pygame.mixer.music.load(music_path)
 pygame.mixer.music.play(-1)
 
+# Load font
+font = pygame.font.Font(font_path, 30)
+
 # Variables
 player_pos = [screen.get_width() // 2, screen.get_height() // 2]
 player_angle = 0
 player_speed = 5
 bullet_speed = 10
-frame_rate = 17
+frame_rate = 30
 clock = pygame.time.Clock()
+bullet_delay = 1.5 * 1000  # 1.5 seconds in milliseconds
+last_bullet_time = 0
+
+# New function to determine which wall the tank is facing
+def get_facing_wall(angle):
+    # Normalize the angle to be between 0 and 360
+    normalized_angle = angle % 360
+    if normalized_angle < 0:
+        normalized_angle += 360
+    
+    if 45 <= normalized_angle < 135:
+        return "top"
+    elif 135 <= normalized_angle < 225:
+        return "left"
+    elif 225 <= normalized_angle < 315:
+        return "bottom"
+    else:
+        return "right"
 
 # Bullet class
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, angle, position):
+    def __init__(self, direction, position):
         super().__init__()
         self.image = bullet_image
         self.rect = self.image.get_rect(center=position)
-        self.angle = angle
-        self.velocity = pygame.math.Vector2(bullet_speed, 0).rotate(-angle)
-        self.bounces = 1
+        self.direction = direction
+        self.speed = bullet_speed
 
     def update(self):
-        self.rect.x += self.velocity.x
-        self.rect.y += self.velocity.y
-        if self.bounces <= 0:
-            self.kill()
+        if self.direction == "top":
+            self.rect.y -= self.speed
+        elif self.direction == "left":
+            self.rect.x -= self.speed
+        elif self.direction == "bottom":
+            self.rect.y += self.speed
+        elif self.direction == "right":
+            self.rect.x += self.speed
 
-    def bounce(self):
-        self.bounces -= 1
-        self.velocity = pygame.math.Vector2(-self.velocity.x, -self.velocity.y)
+        if self.rect.top < 0 or self.rect.bottom > screen.get_height() or \
+           self.rect.left < 0 or self.rect.right > screen.get_width():
+            self.kill()
 
 # Wall class
 class Wall(pygame.sprite.Sprite):
@@ -107,7 +131,8 @@ def draw_rotated_image(image, angle, pos):
     screen.blit(rotated_image, new_rect.topleft)
 
 def shoot_bullet():
-    bullet = Bullet(player_angle, player_pos)
+    facing_wall = get_facing_wall(player_angle)
+    bullet = Bullet(facing_wall, player_pos)
     bullets.add(bullet)
 
 while True:
@@ -117,26 +142,29 @@ while True:
             sys.exit()
 
     keys = pygame.key.get_pressed()
+    current_time = pygame.time.get_ticks()
+
     if keys[pygame.K_LEFT]:
         player_angle += 5
     if keys[pygame.K_RIGHT]:
         player_angle -= 5
     if keys[pygame.K_UP]:
-        movement_vector = pygame.math.Vector2(0, -player_speed).rotate(-player_angle)
-        new_pos = [player_pos[0] + movement_vector.x, player_pos[1] + movement_vector.y]
+        facing_wall = get_facing_wall(player_angle)
+        movement = {
+            "top": (0, -player_speed),
+            "left": (-player_speed, 0),
+            "bottom": (0, player_speed),
+            "right": (player_speed, 0)
+        }[facing_wall]
+        
+        new_pos = [player_pos[0] + movement[0], player_pos[1] + movement[1]]
         player_rect = pygame.Rect(new_pos[0], new_pos[1], player_tank.get_width(), player_tank.get_height())
         if not any(player_rect.colliderect(wall.rect) for wall in walls_sprites):
             player_pos[0] = new_pos[0]
             player_pos[1] = new_pos[1]
-    if keys[pygame.K_DOWN]:
-        movement_vector = pygame.math.Vector2(0, player_speed).rotate(-player_angle)
-        new_pos = [player_pos[0] + movement_vector.x, player_pos[1] + movement_vector.y]
-        player_rect = pygame.Rect(new_pos[0], new_pos[1], player_tank.get_width(), player_tank.get_height())
-        if not any(player_rect.colliderect(wall.rect) for wall in walls_sprites):
-            player_pos[0] = new_pos[0]
-            player_pos[1] = new_pos[1]
-    if keys[pygame.K_SPACE]:
+    if keys[pygame.K_SPACE] and current_time - last_bullet_time >= bullet_delay:
         shoot_bullet()
+        last_bullet_time = current_time
 
     screen.fill((0, 0, 0))
 
@@ -147,9 +175,14 @@ while True:
 
     for bullet in bullets:
         bullet.update()
-        if pygame.sprite.spritecollideany(bullet, walls_sprites):
-            bullet.bounce()
         screen.blit(bullet.image, bullet.rect.topleft)
+
+    # Display reload or ready message
+    if current_time - last_bullet_time < bullet_delay:
+        text_surface = font.render('RELOADING', True, text_color)
+    else:
+        text_surface = font.render('READY TO SHOOT', True, text_color)
+    screen.blit(text_surface, (10, 10))
 
     pygame.display.flip()
     clock.tick(frame_rate)
