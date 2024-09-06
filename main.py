@@ -15,6 +15,7 @@ d88' `?88b,`?8888P'd88'      d88' `?8888P'  88b
         --nothing ever lasts forever--
 '''
 print(kofiol)
+
 # Initialize pygame
 pygame.init()
 
