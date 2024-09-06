@@ -1,7 +1,6 @@
 import pygame
 import sys
 import os
-import math
 
 kofiol = '''
  d8b                  ,d8888b  d8,         d8b 
@@ -59,18 +58,13 @@ player_pos = [screen.get_width() // 2, screen.get_height() // 2]
 player_angle = 0
 player_speed = 5
 bullet_speed = 10
-frame_rate = 30
 clock = pygame.time.Clock()
 bullet_delay = 1.5 * 1000  # 1.5 seconds in milliseconds
 last_bullet_time = 0
 
 # New function to determine which wall the tank is facing
 def get_facing_wall(angle):
-    # Normalize the angle to be between 0 and 360
     normalized_angle = angle % 360
-    if normalized_angle < 0:
-        normalized_angle += 360
-    
     if 45 <= normalized_angle < 135:
         return "top"
     elif 135 <= normalized_angle < 225:
@@ -145,9 +139,9 @@ while True:
     current_time = pygame.time.get_ticks()
 
     if keys[pygame.K_LEFT]:
-        player_angle += 5
+        player_angle += 90
     if keys[pygame.K_RIGHT]:
-        player_angle -= 5
+        player_angle -= 90
     if keys[pygame.K_UP]:
         facing_wall = get_facing_wall(player_angle)
         movement = {
@@ -185,4 +179,4 @@ while True:
     screen.blit(text_surface, (10, 10))
 
     pygame.display.flip()
-    clock.tick(frame_rate)
+    clock.tick(30)
