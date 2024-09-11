@@ -1,7 +1,8 @@
 # Battle-City-python
 Battle City (1990) recreation in Pygame (Python), but with a very intellegent AI enemy
 
-THe game is forked from 
-AI is made by me
+**The game is forked from [KingsAlpaca/BattleCity](https://github.com/KingsAlpaca/BattleCity)**
 
-Still in development (the game doesn't have the AI yet)
+**AI is made by me**
+
+**Still in development, the game doesn't have the AI yet and is not even a game now**
